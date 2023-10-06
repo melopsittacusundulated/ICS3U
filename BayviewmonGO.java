@@ -55,20 +55,24 @@ public class BayviewmonGO {
 			
 		} else {
 			System.out.println("Alright!");
-			System.out.println();
+			System.out.println("////////////////////////////////////////////////////////////////////////////////////////////////////");
 		}
-
-		// encounter pokemon
-		System.out.println("Would you like to start? (y/n)");
-		String runValidate = in.next(); //validate whether game should run via user input
 		
-		if (runValidate.equals("y")) {
+		String runValidate = "y"; //Create variable that controls whether game runs
+		while (true) {
+			do {
+				System.out.println("Are you ready to start," + trainerName + "? (y/n)");
+				runValidate = in.next(); //validate whether game should run via user input
+			} while (runValidate.equals("n"));
 			
-		} else if (runValidate.equals("n")) {
-			System.out.println(""); //print scores, exit program
-		} else {
-			System.out.println();
+			} else if (runValidate.equals("n")) {
+				System.out.println(""); //print scores, exit program
+			} else {
+				System.out.println("Invalid input");
+			}	
 		}
+				
 		in.close(); //close scanner
 	}
 }
+
