@@ -1,0 +1,36 @@
+package Arrays;
+import java.util.Scanner;
+import java.util.Random;
+
+/*
+ * Name: Dorothy
+ * Date: 2023-24-10
+ * Desc: This program asksa the user for a word, then randomly displays a character 
+ * from it, excluding spaces. Then, it randomly displays a word from the sentence
+ */
+
+public class String6 {
+	public static void main(String[] args) {
+		Random randomGen = new Random();
+		Scanner in = new Scanner(System.in);
+		
+		System.out.println("Hello! input a word or sentence. ");
+		String userInput = in.nextLine();
+		char randomChar;
+		
+		do {
+			int randomNum = randomGen.nextInt(userInput.length());
+			randomChar = userInput.charAt(randomNum);
+			System.out.println("Your random character is: " + randomChar);
+			
+		} while (randomChar != ' '); //print char as long as it isnt a space
+		
+		System.out.println("Enter a sentence: ");
+		String sentence = in.nextLine().trim();
+		int sentenceLength = sentence.length();
+		
+		int randomNum = randomGen.nextInt(sentenceLength);
+		String randomWord = sentence[randomNum];
+		in.close();
+	}
+}
