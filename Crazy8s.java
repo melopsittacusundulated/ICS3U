@@ -332,7 +332,10 @@ public class Crazy8s {
 					} 
 					return (isValid = true); //return that card can indeed be played 
 				} else { //otherwise, if the card does not match either rank or suit
-					
+					if (turn.equals("p")) {
+						System.out.println("> Please choose a card of the same rank, suit, or an 8");
+					}
+					return isValid; //return that the card is not valid
 				}
 			}
 			
