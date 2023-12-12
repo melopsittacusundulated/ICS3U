@@ -1,3 +1,4 @@
+package Crazy8s;
 import java.io.*; 
 import java.util.Scanner;
 import java.util.Random;
@@ -28,8 +29,8 @@ public class Crazy8s {
 		String titleCard = "title card here";
 		String userInput; //create user input storage variable
 		int roundCounter = 1; //create variable to keep track of rounds
-		int userPoints; //create variable to hold player's points
-		int CPUPoints; //same for CPU
+		int userPoints = 0; //create variable to hold player's points
+		int CPUPoints = 0; //same for CPU
 
 		//welcome user to game
 		System.out.println("> Starting game...");
@@ -58,7 +59,7 @@ public class Crazy8s {
 					System.out.println("> You LOST!\n Better luck next time!"); //print out that the player has lost
 				} else { 
 					playersTurn(drawDeck, playerDeck, CPUDeck, userName); //if CPU hasn't won, player's turn
-					playerWin = verifyEmpty(drawDeck, playerDeck, CPUDeck); //check if player has won
+					playerWin = verifyEmpty(playerDeck); //check if player has won
 				}
 			} while (CPUWin && playerWin == false);
 			
@@ -208,6 +209,7 @@ public class Crazy8s {
 		translateCard(chosenCard); //translate chosen card to words
 		cardCommands(drawDeck, playerDeck, CPUDeck, chosenCard, turn); //do any special card actions if necessary
 		System.out.println("> Your turn is over, " + userName + "."); //tell user their turn is over
+		in.close();
 	}
 	
 	public static boolean verifyEmpty(String[] deck) { //this method checks if a deck is empty
@@ -242,7 +244,7 @@ public class Crazy8s {
 					} else { //but if the draw deck is not empty, draw cards
 						shuffle(drawDeck); //shuffle draw deck
 						System.out.println("> The CPU is drawing a card..."); //tell user the CPU is drawing a card
-						String drawnCard; //declare variable for drawn card
+						String drawnCard = ""; //declare variable for drawn card
 						
 						for (int i = 0; i < 52; i++) { //iterate through draw deck to find a card that can be drawn
 							if (!drawDeck[i].equals("NONE")) { //if there is a card
@@ -276,7 +278,7 @@ public class Crazy8s {
 					} else {
 						shuffle(drawDeck); //shuffle draw deck
 						System.out.println("> You must draw a card!");
-						String drawnCard; //declare variable for drawn card
+						String drawnCard = ""; //declare variable for drawn card
 						
 						for (int i = 0; i < 52; i++) { //iterate through draw deck to find a card that can be drawn
 							if (!drawDeck[i].equals("NONE")) { //if there is a card
@@ -291,7 +293,7 @@ public class Crazy8s {
 								break; //leave loop
 							}
 						}
-						System.out.println("> You drew a [ " + drawnCard + " ] !"); //tell user the card they drew
+						System.out.println("> You drew a [ " + drawnCard + " ] , or a "); //tell user the card they drew
 						translateCard(drawnCard); //translate card name to words
 					}
 				}
@@ -339,7 +341,7 @@ public class Crazy8s {
 						return isValid; //return that the card is not valid
 					}
 				} 
-			} else { //if the card passed in is just  being checked if it exists, return true
+			} else { //if the card passed in is just  being checked if it exists (not rank or suit), return true
 				return (isValid = true);
 			}
 			
@@ -385,7 +387,7 @@ public class Crazy8s {
 
 				} 
 				if (turn.equals("c")) { //if CPU's turn (made player pick up), then tell user the card they picked up
-					System.out.println("> You picked up a [ " + drawnCard + " ] , or a");
+					System.out.println("> You picked up a [ " + drawnCard + " ] , or a ");
 					translateCard(drawnCard);
 				}
 				
@@ -393,24 +395,127 @@ public class Crazy8s {
 			
 		} else if (chosenCard.equals("S7")) { // if the card is a 7 of spades, it will shuffle the draw deck
 			if (emptyDeck == true) { //if the draw deck is empty, say that it cannot be shuffled
-				System.out.println("> <> The SEVEN of SPADES is ineffective; there are no cards in the draw deck! <> ");
+				System.out.println("> % The SEVEN of SPADES is ineffective; there are no cards in the draw deck! % ");
 			} else {
 				if (turn.equals("p")) { //if player played the seven of spades, show message
-					System.out.println("> <> Your SEVEN of SPADES shuffled the draw deck! <>");
+					System.out.println("> % Your SEVEN of SPADES shuffled the draw deck! % ");
 				} else { //do same for CPU
-					System.out.println("> <> The CPU's SEVEN of SPADES shuffled the draw deck! <>");
+					System.out.println("> % The CPU's SEVEN of SPADES shuffled the draw deck! %");
 				}
 				shuffle(drawDeck); //shuffle draw deck
 			}
 		} else if (chosenCard.equals("CJ")) { //if the played card is a jack of clubs, the opponent must get a card from the player's hand
 			if (turn.equals("p")) { //if it is the player's turn..
+				Scanner in = new Scanner(System.in); //create scanner to retrieve user's chosen card
 				System.out.println("> 0-0 Your JACK of CLUBS will make the CPU pick up one of your cards! 0-0");
 				boolean validCard = false; //initiate boolean to check if chosen card is valid
+				String givenCard = ""; //initiate givenCard variable so it can be handled outside loop
 				while (validCard = false) {
-					
+					System.out.println("> Choose one of your cards to give to the CPU.");
+					printDeck(playerDeck); //prints player's deck so they can see their cards
+					givenCard = in.next();
+					String usage = "checkExists"; //set usage to be passed into validcard method
+					validCard = validateCard(playerDeck, givenCard, turn, usage);
+					in.close();
 				}
+				for (int i = 0; i < 20; i++) { //iterate through each of player's cards to remove the chosen card
+					if (playerDeck[i].equals(givenCard)) {
+						playerDeck[i] = "NONE"; //replace chosen card with empty slot
+					}
+				}
+				for (int i = 0; i < 20; i++) { //iterate through CPU's deck to replace first empty slot with given card
+					if (CPUDeck[i].equals("NONE")) {
+						CPUDeck[i] = givenCard;
+						break; //leave loop immediately
+					}
+				}
+				System.out.println("> You gave the CPU your [ " + givenCard + " ], or a ");
+				translateCard(givenCard); //translate card given to words
+
+			} else { //if the CPU's places down the card, it will choose a random card for the player to take.
+				Random randomGen = new Random(); //create random generator
+				System.out.println("> % The CPU's JACK of CLUBS will make you pick up one of their cards! % ");
+				boolean validCard = false;
+				String givenCard = "";
+				while (validCard == false) {
+					int randomNum = randomGen.nextInt(20); //generate card index num from 0-19
+					givenCard = CPUDeck[randomNum];
+					if (!givenCard.equals("NONE")) { //if the card at the index isn't empty, validate it
+						String usage = "checkExists"; 
+						validCard = validateCard(CPUDeck, givenCard, turn, usage);
+					}
+				}
+				//iterate through CPU's deck to replace card, iterate through player's card 
+				for (int i = 0; i < 20; i++) {
+					if (CPUDeck[i].equals(givenCard)) {
+						CPUDeck[i] = "NONE";
+					}
+				}
+				for (int i = 0; i < 20; i++) {
+					if (playerDeck[i].equals("NONE")) {
+						playerDeck[i] = givenCard;
+						break;
+					}
+				}
+				System.out.println("The CPU gave you a [ " + givenCard + " ], or a");
+				translateCard(givenCard);
 			}
 		}
-	} //end of cardcommands
+	} 
+
+	public static void translateCard(String chosenCard) { //this method prints the word version of cards
+		String typeCard = ""; //stores number or face value of card
+		String suit = ""; //stores suit of card
+
+		//assign suit names according to card's first character
+			if (chosenCard.charAt(0) == 'C') {
+				suit = "CLUBS 0-0";
+			} else if (chosenCard.charAt(0) == 'D') {
+				suit = "DIAMONDS <>";
+			} else if (chosenCard.charAt(0) == 'S') {
+				suit = "SPADES %";
+			} else { //if the first character is 'H'
+				suit = "HEARTS <3";
+			}
+			//assign rank names based on second character of card
+			if (chosenCard.charAt(1) == '1') {
+				typeCard = "ACE";
+			} else if (chosenCard.charAt(1) == '2') {
+				typeCard = "TWO";
+			} else if (chosenCard.charAt(1) == '3') {
+				typeCard = "THREE";
+			} else if (chosenCard.charAt(1) == '4') {
+				typeCard = "FOUR";
+			} else if (chosenCard.charAt(1) == '5') {
+				typeCard = "FIVE";
+			} else if (chosenCard.charAt(1) == '6') {
+				typeCard = "SIX";
+			} else if (chosenCard.charAt(1) == '7') {
+				typeCard = "SEVEN";
+			} else if (chosenCard.charAt(1) == '8') {
+				typeCard = "EIGHT";
+			} else if (chosenCard.charAt(1) == '9') {
+				typeCard = "NINE";
+			} else if (chosenCard.charAt(1) == '0') { //0 will mean 'ten'
+				typeCard = "TEN";
+			} else if (chosenCard.charAt(1) == 'J') {
+				typeCard = "# JACK #";
+			} else if (chosenCard.charAt(1) == 'Q') {
+				typeCard = "@ QUEEN @";
+			} else {
+				typeCard = "$ KING $";
+			}
+
+			//construct and print card name
+			String cardName = typeCard + " of " + suit;
+			System.out.println(cardName);
+	}
 	
+	public static void printDeck(String[] playerDeck) { //this method sorts and prints the player's hand for viewing
+		...
+	}
+
+	public static int calculatePoints(String[] deck, String player) { //this method calculates the total points of the player/CPU across all rounds
+		...
+	}
 }
