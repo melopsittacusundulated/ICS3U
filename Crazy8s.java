@@ -13,6 +13,7 @@ import java.util.Random;
  */
 public class Crazy8s {
 	static String prevCard = "N0"; //create global variable to store previous card put down. This is the placeholder.
+	static int roundCounter = 1; //create variable to keep track of rounds
 	public static void main(String[] args) throws IOException {
 		File playerFile = new File("playerPoints.txt"); //create file to track  player's points for several rounds
 		File CPUFile = new File("CPUPoints.txt"); //create file to track CPU's points for several rounds
@@ -28,7 +29,6 @@ public class Crazy8s {
 		
 		String titleCard = "title card here";
 		String userInput; //create user input storage variable
-		int roundCounter = 1; //create variable to keep track of rounds
 		int userPoints = 0; //create variable to hold player's points
 		int CPUPoints = 0; //same for CPU
 
