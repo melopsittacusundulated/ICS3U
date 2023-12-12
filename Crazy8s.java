@@ -1,4 +1,3 @@
-package Crazy8s;
 import java.io.*; 
 import java.util.Scanner;
 import java.util.Random;
@@ -10,6 +9,7 @@ import java.util.Random;
  * TO DO:
  * - UI; you win, you lose, "craxy 8s" title card, etc.
  * - methods
+ * fix it so cards are S00 and not S0 so that 10 can be a card
  */
 public class Crazy8s {
 	static String prevCard = "N0"; //create global variable to store previous card put down. This is the placeholder.
@@ -124,6 +124,7 @@ public class Crazy8s {
 			System.out.println("5. The CPU and player will take turns doing this until one of them discards their entire hand; this person is the winner.");
 			System.out.println("6. If the player wants to keep playing, they will be rewarded points so that an “overall” winner can be determined after all rounds conclude. The winner of each round is given 1000 points, while the loser’s points are determined by their leftover hand; number cards are worth 25 points, face cards are worth 50, and 8’s are worth 100.");
 			System.out.println("7. There are 3 special cards other than the 8's... Play to find out!");
+			System.out.println("> Please note that 0s in number cards (Ex. S0, ten of spades) means the 'ten' card.");
 		}
 		else {
 			System.out.println("> Let's start, then!");
@@ -496,7 +497,7 @@ public class Crazy8s {
 				typeCard = "EIGHT";
 			} else if (chosenCard.charAt(1) == '9') {
 				typeCard = "NINE";
-			} else if (chosenCard.charAt(1) == '0') { //0 will mean 'ten'
+			} else if (chosenCard.charAt(1) == '0') {  //the '0' will represent tens in this game.
 				typeCard = "TEN";
 			} else if (chosenCard.charAt(1) == 'J') {
 				typeCard = "# JACK #";
@@ -512,10 +513,108 @@ public class Crazy8s {
 	}
 	
 	public static void printDeck(String[] playerDeck) { //this method sorts and prints the player's hand for viewing
-		...
+		int numberCardCount = 0; //initialize counter for number cards
+		int faceCardCount = 0; //initialize counter for face cards
+		int nullCardCount = 0; //initialize counter for empty card slots
+		//count the number of each card to create respective arrays
+		for (int i = 0; i < 20; i++) {
+			if (!playerDeck[i].equals("NONE")) { //if the card is not empty, check whether it is a face or number card, increment the counter
+				if (playerDeck[i].charAt(1) == 'J' || playerDeck[i].charAt(1) == 'Q' || playerDeck[i].charAt(1) == 'K') {
+					faceCardCount++;
+				} else {
+					numberCardCount++;
+				} 
+			} else {
+				nullCardCount++;
+			}
+		} //create arrays to sort the cards
+		String[] numberCards = new String[numberCardCount];
+		String[] faceCards = new String[faceCardCount];
+		//create indexes that will be used to fill up these arrays
+		int numberIndex = 0;
+		int faceIndex = 0;
+		
+		for (int i = 0; i < 20; i++) { //add cards to each respective array
+			if (!playerDeck[i].equals("NONE")) {
+				if (playerDeck[i].charAt(1) == 'J' ||playerDeck[i].charAt(1) == 'Q' || playerDeck[i].charAt(1) == 'K') {
+					faceCards[faceIndex] = playerDeck[i]; //add the face card to facecards
+					faceIndex++; //increment index so that next index is filled
+				} else {
+					numberCards[numberIndex] = playerDeck[i];
+					numberIndex++;
+				}
+			}
+		}
+		//use bubble sort to sort both types of cards
+		for (int i = 0; i < numberCardCount; i++) {
+			for (int j = 1; j < numberCardCount; j++) {
+				int num1 = numberCards[j-1].charAt(1); //set variables for number
+				int num2 = numberCards[j].charAt(1);
+				if (num1 > num2) {
+					String temp = numberCards[j-1];
+					numberCards[j-1] = numberCards[j];
+					numberCards[j] = temp;
+				}
+			}
+		}
+		
+		String sortedFace = "CJ DJ HJ SJ CQ DQ HQ SQ CK DK HK SK"; //initiate string with sorted face cards to compare to
+		for (int i = 0; i < faceCardCount; i++) {
+			for (int j = 1; j < faceCardCount; j++) {
+				int num1 = sortedFace.indexOf(faceCards[j-1]); //set numbers to be compared to the index of sorted cards in sortedFace
+				int num2 = sortedFace.indexOf(faceCards[j]);
+				if (num1 > num2) {
+					String temp = numberCards[j-1];
+					numberCards[j-1] = numberCards[j];
+					numberCards[j] = temp;
+				}
+			}
+		}
+		
+		int currIndex = 0; //create index counter to start putting sorted cards into player's deck
+		// fill with number cards, then face cards, then fill remaining space with empty slots.
+		for (int i = 0; i < numberCardCount; i ++) {
+			playerDeck[currIndex] = numberCards[i];
+			currIndex++; //increment index for player's overall deck
+		}
+		for (int i = 0; i < faceCardCount; i++) { //same thing for face cards
+			playerDeck[currIndex] = faceCards[i];
+			currIndex++;
+		}
+		for (int i = (20 - nullCardCount); i < 20; i++) { //fill remaining space with empty slots
+			playerDeck[i] = "NONE";
+		}
+		
+		//finally, print out all the cards
+		for (int i = 0; i < 20; i ++) {
+			if (!playerDeck[i].equals("NONE")) { //if the card in the player's deck isn't empty, print it out.
+				System.out.print("[ " + playerDeck[i] + " ] ");
+			}
+		}
+		System.out.println("> Please note that '0's are TENS !");
 	}
 
 	public static int calculatePoints(String[] deck, String player) { //this method calculates the total points of the player/CPU across all rounds
-		...
+		int roundPoints = 0; //initiate variable to calculate amount of points earned in round
+		int totalPoints = 0; //create variable to calculate total points in round
+		
+		for (int i = 0; i < 20; i++) { //go through every card, add points accordingly
+			if (!deck[i].equals("NONE")) { //except the empty slots
+				if (deck[i].charAt(1) == '8') { // add 100 points if a leftover card is an 8
+					roundPoints += 100;
+				} else if (deck[i].charAt(1) == 'J' || deck[i].charAt(1) == 'Q' || deck[i].charAt(1) == 'K') { // add 50 points to face card
+					roundPoints += 50;
+				} else {
+					roundPoints += 25; // give 25 points for each number card
+				}
+			}
+		}
+		
+		if (player.equals("p")) {
+			FileWriter pointWriter = new FileWriter(playerPoints.txt); //open filewriter for player's point file
+			for (int i = 0 ; i < 10; i++) { //go through each line in the points file
+				
+			}
+		}
 	}
 }
