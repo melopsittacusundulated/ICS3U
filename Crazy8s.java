@@ -8,8 +8,7 @@ import java.util.Random;
  * Description: This is a console-based version of the popular card game Crazy 8's. Enjoy! :D
  * TO DO:
  * - UI; you win, you lose, "craxy 8s" title card, etc.
- * - methods
- * fix it so cards are S00 and not S0 so that 10 can be a card
+
  */
 public class Crazy8s {
 	static String prevCard = "N0"; //create global variable to store previous card put down. This is the placeholder.
@@ -17,13 +16,6 @@ public class Crazy8s {
 	public static void main(String[] args) throws IOException {
 		File playerFile = new File("playerPoints.txt"); //create file to track  player's points for several rounds
 		File CPUFile = new File("CPUPoints.txt"); //create file to track CPU's points for several rounds
-		PrintWriter playerWriter = new PrintWriter("playerPoints.txt"); //create file writer for player points file
-		PrintWriter CPUWriter = new PrintWriter("CPUPoints.txt"); //create file writer for player points file
-		
-		for (int i = 0; i < 10; i++) { //fill the first 10 lines of the file with 0s to indicate 0 rounds, points
-			playerWriter.println("0");
-			CPUWriter.println("0");
-		}
 		
 		Scanner in = new Scanner(System.in); //create scanner
 		
@@ -104,8 +96,6 @@ public class Crazy8s {
 		System.out.println(titleCard);
 		System.out.println("> Game closing...\n END");
 		
-		playerWriter.close(); //close print-writers to save progress
-		CPUWriter.close();
 		in.close(); //close scanner
 	}
 	
@@ -136,7 +126,8 @@ public class Crazy8s {
 	}
 	
 	public static void dealCards(String [] drawDeck, String [] player1, String [] player2) throws FileNotFoundException{ //prepares and deals cards to players
-		Scanner scanner = new Scanner(new FileReader("cards.txt")); //create reader to get cards from file
+		File cardFile = new File("cards.txt"); //import card file
+		Scanner scanner = new Scanner(new FileReader(cardFile)); //create reader to get cards from file
 		int x = 0; //initiate counter variable
 		while (scanner.hasNext()) { //get all 52 cards from file, read them and put into draw deck
 			drawDeck[x] = scanner.nextLine(); //put card on each line into file
@@ -594,7 +585,7 @@ public class Crazy8s {
 		System.out.println("> Please note that '0's are TENS !");
 	}
 
-	public static int calculatePoints(String[] deck, String player) { //this method calculates the total points of the player/CPU across all rounds
+	public static int calculatePoints(String[] deck, String player) throws IOException{ //this method calculates the total points of the player/CPU across all rounds
 		int roundPoints = 0; //initiate variable to calculate amount of points earned in round
 		int totalPoints = 0; //create variable to calculate total points in round
 		
@@ -611,10 +602,26 @@ public class Crazy8s {
 		}
 		
 		if (player.equals("p")) {
-			FileWriter pointWriter = new FileWriter(playerPoints.txt); //open filewriter for player's point file
-			for (int i = 0 ; i < 10; i++) { //go through each line in the points file
-				
+			PrintWriter pointWriter = new PrintWriter(new FileWriter ("playerPoints.txt", true)); //open file writer for appending to player's point file
+			pointWriter.println(roundPoints); //print round's points on new line
+			Scanner myFileScanner = new Scanner("playerPoints.txt"); //create scanner to read and add up all points
+			while (myFileScanner.hasNext()) { //add upp all lines of point file to get total points
+				int points = Integer.parseInt(myFileScanner.next());
+				totalPoints += points;
 			}
+			pointWriter.close(); //close to save file
+			myFileScanner.close();
+		} else { //calculate points if CPU deck passed in
+			PrintWriter pointWriter = new PrintWriter(new FileWriter ("CPUPoints.txt", true)); //open file writer for appending to player's point file
+			pointWriter.println(roundPoints); //print round's points on new line
+			Scanner myFileScanner = new Scanner("CPUPoints.txt"); //create scanner to read and add up all points
+			while (myFileScanner.hasNext()) { //add up all lines of point file to get total points
+				int points = Integer.parseInt(myFileScanner.next());
+				totalPoints += points;
+			}
+			pointWriter.close(); //close to save file
+			myFileScanner.close();
 		}
+		
+		return totalPoints; //return the total amount of points across all rounds to method invoked
 	}
-}
