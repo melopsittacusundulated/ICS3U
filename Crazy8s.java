@@ -8,6 +8,8 @@ import java.util.Random;
  * Description: This is a console-based version of the popular card game Crazy 8's. Enjoy! :D
  * TO DO:
  * - UI; you win, you lose, "craxy 8s" title card, etc.
+ * check out whats up with the rules loop
+ * cards txt file
 
  */
 public class Crazy8s {
@@ -16,6 +18,7 @@ public class Crazy8s {
 	public static void main(String[] args) throws IOException {
 		File playerFile = new File("playerPoints.txt"); //create file to track  player's points for several rounds
 		File CPUFile = new File("CPUPoints.txt"); //create file to track CPU's points for several rounds
+		File cardFile = new File("cards.txt");
 		
 		Scanner in = new Scanner(System.in); //create scanner
 		
@@ -29,7 +32,7 @@ public class Crazy8s {
 		System.out.println(titleCard); //show 'crazy 8's' title card to player
 		System.out.println("> What's your name? (type your name or a favourite word!): ");
 		String userName = in.next(); //get next word or name they they type in as user name
-		System.out.println("> Welcome to CRAZY 8's, " + userName);
+		System.out.println("> Welcome to CRAZY 8's, " + userName + "!");
 		showRules(); //show rules to user, start game
 		
 		boolean playAgain = true; // create boolean to facilitate whether ENTIRE game restarts or not
@@ -101,8 +104,12 @@ public class Crazy8s {
 	
 	public static void showRules() { //this method asks the user if they want to see the rules, and prints them if necessary.
 		Scanner in = new Scanner(System.in);
-		System.out.println("> Would you like to see the rules? (y/n)");
-		String userInput = in.next();
+		String userInput = ""; //initiate user input to do do-while loop for error catching
+		do {
+			System.out.println("> Would you like to see the rules? (y/n): ");
+			userInput = in.next();
+		} while (!userInput.equals("y") || !userInput.equals("n")); //continue to ask until user inputs either yes or no
+		
 		if (userInput.equals("y")) {
 			System.out.println("- - - - - - - - R U L E S- - - - - - - - ");
 			System.out.println("Crazy 8’s is a card game in which the objective is for players to discard all of the cards from their hand. ");
@@ -125,9 +132,8 @@ public class Crazy8s {
 		in.close();
 	}
 	
-	public static void dealCards(String [] drawDeck, String [] player1, String [] player2) throws FileNotFoundException{ //prepares and deals cards to players
-		File cardFile = new File("cards.txt"); //import card file
-		Scanner scanner = new Scanner(new FileReader(cardFile)); //create reader to get cards from file
+	public static void dealCards(String [] drawDeck, String [] player1, String [] player2) throws IOException{ //prepares and deals cards to players
+		Scanner scanner = new Scanner(new FileReader("cards.txt")); //create reader to get cards from file
 		int x = 0; //initiate counter variable
 		while (scanner.hasNext()) { //get all 52 cards from file, read them and put into draw deck
 			drawDeck[x] = scanner.nextLine(); //put card on each line into file
