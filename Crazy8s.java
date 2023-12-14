@@ -1,4 +1,4 @@
-import java.io.*; 
+import java.io.*;
 import java.util.Scanner;
 import java.util.Random;
 
@@ -10,16 +10,13 @@ import java.util.Random;
  * - UI; you win, you lose, "craxy 8s" title card, etc.
  * check out whats up with the rules loop
  * cards txt file
+ * fix prevCard; allow cpu to put down first card, maybe create a flag that bypasses validateCard
 
  */
 public class Crazy8s {
-	static String prevCard = "N0"; //create global variable to store previous card put down. This is the placeholder.
+	static String prevCard = "  "; //create global variable to store previous card put down. This is the placeholder.
 	static int roundCounter = 1; //create variable to keep track of rounds
 	public static void main(String[] args) throws IOException {
-		File playerFile = new File("playerPoints.txt"); //create file to track  player's points for several rounds
-		File CPUFile = new File("CPUPoints.txt"); //create file to track CPU's points for several rounds
-		File cardFile = new File("cards.txt");
-		
 		Scanner in = new Scanner(System.in); //create scanner
 		
 		String titleCard = "title card here";
@@ -128,12 +125,13 @@ public class Crazy8s {
 		}
 		System.out.println("> Are you ready? (type anything to begin!)");
 		userInput = in.next();
-		System.out.println("> Game Beginning . . .");
+		System.out.println("> Game Beginning . . .\n");
 		in.close();
 	}
 	
 	public static void dealCards(String [] drawDeck, String [] player1, String [] player2) throws IOException{ //prepares and deals cards to players
-		Scanner scanner = new Scanner(new FileReader("cards.txt")); //create reader to get cards from file
+		String cardsFile = ("H:\\ICS3\\ICS3U\\src\\FinalProject\\cards.txt");
+		Scanner scanner = new Scanner(new File(cardsFile)); //create reader to get cards from file
 		int x = 0; //initiate counter variable
 		while (scanner.hasNext()) { //get all 52 cards from file, read them and put into draw deck
 			drawDeck[x] = scanner.nextLine(); //put card on each line into file
@@ -145,10 +143,16 @@ public class Crazy8s {
 		for (int i = 0; i < 7; i++) { //place 7 cards into each of the players' decks
 			player1[i] = drawDeck[i];
 			drawDeck[i] = "NONE"; //replace card given to player with empty slot
-			player2[i+7] = drawDeck[i+7]; //simultaneously put next 7 cards into CPU's card
+			player2[i] = drawDeck[i+7]; //simultaneously put next 7 cards into CPU's card
 			drawDeck[i+7] = "NONE"; //replace given card with empty slot
 		}
+		
+		for (int i = 19; i >= 7; i--) { //replace empty slots with "NONE"
+			player1[i] = "NONE";
+			player2[i] = "NONE";
+		}
 		scanner.close();
+		
 	}
 	
 	public static void shuffle(String[] deck) { //this method shuffles decks
@@ -166,13 +170,13 @@ public class Crazy8s {
 	public static void CPUsTurn(String[] drawDeck, String[] playerDeck, String[] CPUDeck) { //this method executes the CPU's turn
 		Random randomGen = new Random(); //create new random generator
 		System.out.println("It's the CPU's turn to play a card!");
+		System.out.println("The CPU is thinking...\n");
 		boolean validCard = false; //initiaite boolean to check if card played is valid
 		String turn = "c"; //initiate turn variable to be passed into methods as 'c' for CPU
 		String chosenCard; //declare variable to store user's chosen card
 		
 		do { //create loop that continues until CPU chooses valid card
 			drawCheck(drawDeck, CPUDeck, turn); //pass decks into method that checks if card needs to be drawn
-			System.out.println("The CPU is thinking...");
 			int randNum = randomGen.nextInt(20); //choose a random card index from CPU's 20 cards
 			chosenCard = CPUDeck[randNum]; //set chosen card to randomly chosen card
 			String usage = "playCard"; //set variable to pass into validCard that tells usage of card (affects handling of card)
@@ -190,7 +194,7 @@ public class Crazy8s {
 		Scanner in = new Scanner(System.in); //create scanner for receiving user input
 		boolean validCard = false;
 		String turn = "p"; //initiate turn variable to be passed into methods as 'p' for player
-		System.out.println("> Play a card, " + userName + "!"); //tell user its their turn
+		System.out.println("> Your turn has started! \n > Play a card, " + userName + "!"); //tell user its their turn
 		String chosenCard; // declare variable for stored card
 		
 		do { //create loop to ensure card chosen is valid
@@ -229,7 +233,6 @@ public class Crazy8s {
 		boolean isValid = false; //set whether there is a card that can be played in player's deck or not
 		while (isValid == false) { //continue to draw card if the player still doesn't have a valid card
 			if (turn.equals("c")) { //if its the cpu's turn
-				System.out.println("> CPU's turn has started...");
 				for (int i = 0; i < n; i++) {
 					isValid = validateCard(deck, deck[i], turn, usage); //check if any of the cards can be played
 					if (isValid == true) { //if there is a valid card that can be played, leave loop
@@ -263,7 +266,6 @@ public class Crazy8s {
 					
 				}
 			} else if (turn.equals("p")) { //but if it is the player's turn (same thing)
-				System.out.println("The player's turn has started...");
 				for (int i = 0; i < n; i++) { 
 					isValid = validateCard(deck, deck[i], turn, usage); //check if any of the cards can be played
 					if (isValid == true) {
@@ -303,6 +305,9 @@ public class Crazy8s {
 		boolean isValid = false; //initiate value that decides if card is value to false
 		boolean cardExists = false; //initiate boolean that ensures that card is in player's deck
 		
+		if (chosenCard.equals("NONE")) { //cpu may hand in empty card slot, ensure it does not pass validation
+			return isValid; //return that the card is not valid
+		}
 		//verify if card exists in deck (if user-inputed)
 		if (turn.equals("p")) { //if its the player's turn
 			for (int i = 0; i < 20; i++) { //iterate through each card in their deck
@@ -506,7 +511,7 @@ public class Crazy8s {
 
 			//construct and print card name
 			String cardName = typeCard + " of " + suit;
-			System.out.println(cardName);
+			System.out.println(cardName + "\n");
 	}
 	
 	public static void printDeck(String[] playerDeck) { //this method sorts and prints the player's hand for viewing
@@ -588,7 +593,7 @@ public class Crazy8s {
 				System.out.print("[ " + playerDeck[i] + " ] ");
 			}
 		}
-		System.out.println("> Please note that '0's are TENS !");
+		System.out.println("\n> Please note that '0's are TENS !");
 	}
 
 	public static int calculatePoints(String[] deck, String player) throws IOException{ //this method calculates the total points of the player/CPU across all rounds
@@ -631,3 +636,4 @@ public class Crazy8s {
 		
 		return totalPoints; //return the total amount of points across all rounds to method invoked
 	}
+}
