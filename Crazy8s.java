@@ -108,7 +108,7 @@ public class Crazy8s {
 		do {
 			System.out.println("> Would you like to see the rules? (y/n): ");
 			userInput = in.next();
-		} while (!userInput.equals("y") || !userInput.equals("n")); //continue to ask until user inputs either yes or no
+		} while (!userInput.equals("y") && !userInput.equals("n")); //continue to ask until user inputs either yes or no
 		
 		if (userInput.equals("y")) {
 			System.out.println("- - - - - - - - R U L E S- - - - - - - - ");
