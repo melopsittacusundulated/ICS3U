@@ -8,14 +8,14 @@ import java.util.Random;
  * Description: This is a console-based version of the popular card game Crazy 8's. Enjoy! :D
  * TO DO:
  * - UI; you win, you lose, "craxy 8s" title card, etc.
- * check out whats up with the rules loop
- * cards txt file
- * fix prevCard; allow cpu to put down first card, maybe create a flag that bypasses validateCard
+ * fix program so validateCard doesnt print message if the cards are just getting checked during drawCheck
+ * find out why user can't input card
 
  */
 public class Crazy8s {
 	static String prevCard = "  "; //create global variable to store previous card put down. This is the placeholder.
 	static int roundCounter = 1; //create variable to keep track of rounds
+	static boolean firstTurn; //declare boolean for first turn to be used across several classes
 	public static void main(String[] args) throws IOException {
 		Scanner in = new Scanner(System.in); //create scanner
 		
@@ -43,6 +43,7 @@ public class Crazy8s {
 			
 			boolean CPUWin = false; //reset player "winning" booleans to false so that game plays
 			boolean playerWin = false;
+			firstTurn = true; //set flag for CPU to put down any card on first turn
 			
 			do {
 				CPUsTurn(drawDeck, playerDeck, CPUDeck); //CPU goes first.
@@ -130,7 +131,7 @@ public class Crazy8s {
 	}
 	
 	public static void dealCards(String [] drawDeck, String [] player1, String [] player2) throws IOException{ //prepares and deals cards to players
-		String cardsFile = ("src/FinalProject/cards.txt");
+		String cardsFile = ("Crazy8s\\cards.txt");
 		Scanner scanner = new Scanner(new File(cardsFile)); //create reader to get cards from file
 		int x = 0; //initiate counter variable
 		while (scanner.hasNext()) { //get all 52 cards from file, read them and put into draw deck
@@ -151,6 +152,7 @@ public class Crazy8s {
 			player1[i] = "NONE";
 			player2[i] = "NONE";
 		}
+
 		scanner.close();
 		
 	}
@@ -179,8 +181,12 @@ public class Crazy8s {
 			drawCheck(drawDeck, CPUDeck, turn); //pass decks into method that checks if card needs to be drawn
 			int randNum = randomGen.nextInt(20); //choose a random card index from CPU's 20 cards
 			chosenCard = CPUDeck[randNum]; //set chosen card to randomly chosen card
+			if (firstTurn == true) {
+
+			}
 			String usage = "playCard"; //set variable to pass into validCard that tells usage of card (affects handling of card)
 			validCard = validateCard(CPUDeck, chosenCard, turn, usage); //reset validCard boolean to check if chosen card can be played
+			firstTurn = false; //set first turn flag to false once CPU has gone
 		} while (validCard == false); 
 		
 		prevCard = chosenCard; //set card at top of played card deck to chosen card
@@ -194,7 +200,7 @@ public class Crazy8s {
 		Scanner in = new Scanner(System.in); //create scanner for receiving user input
 		boolean validCard = false;
 		String turn = "p"; //initiate turn variable to be passed into methods as 'p' for player
-		System.out.println("> Your turn has started! \n > Play a card, " + userName + "!"); //tell user its their turn
+		System.out.println("> Your turn has started! \n> Play a card, " + userName + "!"); //tell user its their turn
 		String chosenCard; // declare variable for stored card
 		
 		do { //create loop to ensure card chosen is valid
@@ -227,78 +233,81 @@ public class Crazy8s {
 	}
 	
 	public static void drawCheck(String[] drawDeck, String[] deck, String turn) { //this method checks and carries out the withdrawal of cards from the draw deck
-		boolean deckEmpty = verifyEmpty(drawDeck); //check if draw deck is empty
-		int n = deck.length; //store length of deck passed in for loops
-		String usage = "checkCard"; //set usage to be passed into validCard method as check-only
-		boolean isValid = false; //set whether there is a card that can be played in player's deck or not
-		while (isValid == false) { //continue to draw card if the player still doesn't have a valid card
-			if (turn.equals("c")) { //if its the cpu's turn
-				for (int i = 0; i < n; i++) {
-					isValid = validateCard(deck, deck[i], turn, usage); //check if any of the cards can be played
-					if (isValid == true) { //if there is a valid card that can be played, leave loop
-						break;
+		if (firstTurn == false) { //if it isn't the first turn, check if any cards need to be picked up. otherwise, ignore b/c CPU will put down first card, no cards need to be drawn
+			boolean deckEmpty = verifyEmpty(drawDeck); //check if draw deck is empty
+			int n = deck.length; //store length of deck passed in for loops
+			String usage = "checkCard"; //set usage to be passed into validCard method as check-only
+			boolean isValid = false; //set whether there is a card that can be played in player's deck or not
+			while (isValid == false) { //continue to draw card if the player still doesn't have a valid card
+				if (turn.equals("c")) { //if its the cpu's turn
+					for (int i = 0; i < n; i++) {
+						isValid = validateCard(deck, deck[i], turn, usage); //check if any of the cards can be played
+						if (isValid == true) { //if there is a valid card that can be played, leave loop
+							break;
+						}
 					}
-				}
-				if (isValid == false) { //if there are no valid cards
-					if (deckEmpty == true) {
-						System.out.println("> The CPU's turn was skipped; there are no cards in the draw deck.");
-					} else { //but if the draw deck is not empty, draw cards
-						shuffle(drawDeck); //shuffle draw deck
-						System.out.println("> The CPU is drawing a card..."); //tell user the CPU is drawing a card
-						String drawnCard = ""; //declare variable for drawn card
-						
-						for (int i = 0; i < 52; i++) { //iterate through draw deck to find a card that can be drawn
-							if (!drawDeck[i].equals("NONE")) { //if there is a card
-								drawnCard = drawDeck[i]; //draw the card from the drawdeck
-								drawDeck[i] = "NONE"; //set taken card to empty slot
-								break; //leave loop
+					if (isValid == false) { //if there are no valid cards
+						if (deckEmpty == true) {
+							System.out.println("> The CPU's turn was skipped; there are no cards in the draw deck.");
+						} else { //but if the draw deck is not empty, draw cards
+							shuffle(drawDeck); //shuffle draw deck
+							System.out.println("> The CPU is drawing a card..."); //tell user the CPU is drawing a card
+							String drawnCard = ""; //declare variable for drawn card
+							
+							for (int i = 0; i < 52; i++) { //iterate through draw deck to find a card that can be drawn
+								if (!drawDeck[i].equals("NONE")) { //if there is a card
+									drawnCard = drawDeck[i]; //draw the card from the drawdeck
+									drawDeck[i] = "NONE"; //set taken card to empty slot
+									break; //leave loop
+								}
 							}
-						}
-						for (int i = 0; i < n; i++) { //iterate through CPU's deck to find a place to put down the card
-							if (!deck[i].equals("NONE")) { //if there is an empty spot
-								deck[i] = drawnCard; //set empty spot to drawn card
-								break; //leave loop
+							for (int i = 0; i < n; i++) { //iterate through CPU's deck to find a place to put down the card
+								if (!deck[i].equals("NONE")) { //if there is an empty spot
+									deck[i] = drawnCard; //set empty spot to drawn card
+									break; //leave loop
+								}
 							}
+							System.out.println("> The CPU drew a card."); //tell user the CPU drew a card.
+							
 						}
-						System.out.println("> The CPU drew a card."); //tell user the CPU drew a card.
 						
 					}
-					
-				}
-			} else if (turn.equals("p")) { //but if it is the player's turn (same thing)
-				for (int i = 0; i < n; i++) { 
-					isValid = validateCard(deck, deck[i], turn, usage); //check if any of the cards can be played
-					if (isValid == true) {
-						break;
+				} else if (turn.equals("p")) { //but if it is the player's turn (same thing)
+					for (int i = 0; i < n; i++) { 
+						isValid = validateCard(deck, deck[i], turn, usage); //check if any of the cards can be played
+						if (isValid == true) {
+							break;
+						}
 					}
-				}
-				if (isValid == false) {
-					if (deckEmpty == true) {
-						System.out.println("> Your turn was skipped. There are no cards in the draw deck.");
-					} else {
-						shuffle(drawDeck); //shuffle draw deck
-						System.out.println("> You must draw a card!");
-						String drawnCard = ""; //declare variable for drawn card
-						
-						for (int i = 0; i < 52; i++) { //iterate through draw deck to find a card that can be drawn
-							if (!drawDeck[i].equals("NONE")) { //if there is a card
-								drawnCard = drawDeck[i]; //draw the card from the drawdeck
-								drawDeck[i] = "NONE"; //set taken card to empty slot
-								break; //leave loop
+					if (isValid == false) {
+						if (deckEmpty == true) {
+							System.out.println("> Your turn was skipped. There are no cards in the draw deck.");
+						} else {
+							shuffle(drawDeck); //shuffle draw deck
+							System.out.println("> You must draw a card!");
+							String drawnCard = ""; //declare variable for drawn card
+							
+							for (int i = 0; i < 52; i++) { //iterate through draw deck to find a card that can be drawn
+								if (!drawDeck[i].equals("NONE")) { //if there is a card
+									drawnCard = drawDeck[i]; //draw the card from the drawdeck
+									drawDeck[i] = "NONE"; //set taken card to empty slot
+									break; //leave loop
+								}
 							}
-						}
-						for (int i = 0; i < n; i++) { //iterate through CPU's deck to find a place to put down the card
-							if (!deck[i].equals("NONE")) { //if there is an empty spot
-								deck[i] = drawnCard; //set empty spot to drawn card
-								break; //leave loop
+							for (int i = 0; i < n; i++) { //iterate through CPU's deck to find a place to put down the card
+								if (!deck[i].equals("NONE")) { //if there is an empty spot
+									deck[i] = drawnCard; //set empty spot to drawn card
+									break; //leave loop
+								}
 							}
+							System.out.println("> You drew a [ " + drawnCard + " ] , or a "); //tell user the card they drew
+							translateCard(drawnCard); //translate card name to words
 						}
-						System.out.println("> You drew a [ " + drawnCard + " ] , or a "); //tell user the card they drew
-						translateCard(drawnCard); //translate card name to words
 					}
 				}
 			}
-		}
+		} 
+		
 	}
 	
 	public static boolean validateCard(String[] deck, String chosenCard, String turn, String usage) { //this method validates whether a card can be played, according to the previous played card
