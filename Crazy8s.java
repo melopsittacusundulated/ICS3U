@@ -130,7 +130,7 @@ public class Crazy8s {
 	}
 	
 	public static void dealCards(String [] drawDeck, String [] player1, String [] player2) throws IOException{ //prepares and deals cards to players
-		String cardsFile = ("H:\\ICS3\\ICS3U\\src\\FinalProject\\cards.txt");
+		String cardsFile = ("src/FinalProject/cards.txt");
 		Scanner scanner = new Scanner(new File(cardsFile)); //create reader to get cards from file
 		int x = 0; //initiate counter variable
 		while (scanner.hasNext()) { //get all 52 cards from file, read them and put into draw deck
