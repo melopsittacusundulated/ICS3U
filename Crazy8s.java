@@ -674,3 +674,4 @@ public class Crazy8s {
 		
 		return totalPoints; //return the total amount of points across all rounds to method invoked
 	}
+}
