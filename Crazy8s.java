@@ -7,17 +7,18 @@ import java.util.Random;
  * Date: 2023-22-12
  * Description: This is a console-based version of the popular card game Crazy 8's. Enjoy! :D
  * TO DO:
- * - UI; you lose,womp womp remove test prints
- * fix program so validateCard doesnt print message if the cards are just getting checked during drawCheck
- * find out why user can't input card - nosuchelement exception
+ * find out why extra line is printed after first put down card prompt
+ * figure out numberformatexception with points file after saying yes to rounds
+ * after file io and extra line, you're finished!!! congrats
 
  */
 public class Crazy8s {
 	static String prevCard = "  "; //create global variable to store previous card put down. This is the placeholder.
 	static int roundCounter = 1; //create variable to keep track of rounds
 	static boolean firstTurn; //declare boolean for first turn to be used across several classes
+
 	public static void main(String[] args) throws IOException {
-		Scanner in = new Scanner(System.in); //create scanner
+		Scanner in = new Scanner(System.in);
 		
 		String titleCard = "   ______  _______          _       ________  ____  ____     ____   _   ______   \n" +
 " .' ___  ||_   __ \\        / \\     |  __   _||_  _||_  _|  .' __ '.| |.' ____ \\  \n" +
@@ -33,10 +34,19 @@ public class Crazy8s {
 "  \\ '/ / | \\__. | | \\_/ |,     \\  /\\  /   \\  `-'  /_| |_\\   |_ |_| \n" +
 "[\\_:  /   '.__.'  '.__.'_/      \\/  \\/     `.___.'|_____|\\____|(_) \n" +
 " \\__.'                                                             "; //text from fancytextpro.com
-		String loseCard = ""; //text from fancytextpro.com
-		//test prints
-		System.out.println(winCard);
-		System.out.println(loseCard);
+String loseCard = "                                                                                                                 \n" +
+" ___  ___  ___   .--.    ___ .-. .-.      .-..      ___  ___  ___   .--.    ___ .-. .-.      .-..               \n" +
+"(   )(   )(   ) /    \\  (   )   '   \\    /    \\    (   )(   )(   ) /    \\  (   )   '   \\    /    \\              \n" +
+" | |  | |  | | |  .-. ;  |  .-.  .-. ;  ' .-,  ;    | |  | |  | | |  .-. ;  |  .-.  .-. ;  ' .-,  ;             \n" +
+" | |  | |  | | | |  | |  | |  | |  | |  | |  . |    | |  | |  | | | |  | |  | |  | |  | |  | |  . |             \n" +
+" | |  | |  | | | |  | |  | |  | |  | |  | |  | |    | |  | |  | | | |  | |  | |  | |  | |  | |  | |             \n" +
+" | |  | |  | | | |  | |  | |  | |  | |  | |  | |    | |  | |  | | | |  | |  | |  | |  | |  | |  | |             \n" +
+" | |  ; '  | | | '  | |  | |  | |  | |  | |  ' |    | |  ; '  | | | '  | |  | |  | |  | |  | |  ' |  .-.   .-.  \n" +
+" ' `-'   `-' ' '  `-' /  | |  | |  | |  | `-'  '    ' `-'   `-' ' '  `-' /  | |  | |  | |  | `-'  ' (   ) (   ) \n" +
+"  '.__.'.__.'   `.__.'  (___)(___)(___) | \\__.'      '.__.'.__.'   `.__.'  (___)(___)(___) | \\__.'   `-'   `-' \n" +
+"                                        | |                                                | |                   \n" +
+"                                       (___)                                              (___)                  "; //text from fancytextpro.com, 'sweet'
+
 		String userInput; //create user input storage variable
 		int userPoints = 0; //create variable to hold player's points
 		int CPUPoints = 0; //same for CPU
@@ -47,7 +57,7 @@ public class Crazy8s {
 		System.out.println("> What's your name? (type your name or a favourite word!): ");
 		String userName = in.next(); //get next word or name they they type in as user name
 		System.out.println("> Welcome to CRAZY 8's, " + userName + "!");
-		showRules(); //show rules to user, start game
+		showRules(in); //show rules to user, start game, pass in scanner
 		
 		boolean playAgain = true; // create boolean to facilitate whether ENTIRE game restarts or not
 		
@@ -62,22 +72,22 @@ public class Crazy8s {
 			boolean playerWin = false;
 			firstTurn = true; //set flag for CPU to put down any card on first turn
 			
-			do {
-				CPUsTurn(drawDeck, playerDeck, CPUDeck); //CPU goes first.
+			do { //start loop for each round
+				CPUsTurn(drawDeck, playerDeck, CPUDeck, in); //CPU goes first.
 				CPUWin = verifyEmpty(CPUDeck); //check if cpu's deck is empty (they have won)
 				if (CPUWin == true) { //if the CPU has won..
-					System.out.println(loseCard); //print loser card
+					System.out.println(loseCard + "\n> The CPU placed down all their cards before you... you lost!"); //print loser card
 					System.out.println("> Better luck next time!"); //print out that the player has lost
 				} else { 
-					playersTurn(drawDeck, playerDeck, CPUDeck, userName); //if CPU hasn't won, player's turn
+					playersTurn(drawDeck, playerDeck, CPUDeck, userName, in); //if CPU hasn't won, player's turn
 					playerWin = verifyEmpty(playerDeck); //check if player has won
 				}
-			} while (CPUWin && playerWin == false);
+			} while (!(CPUWin || playerWin)); //continue loop while neither have won
 			
 			prevCard = "N0"; //reset previous card to default placeholder
 			if (playerWin == true) { //if the player won...
 				System.out.println(winCard); //print winner card
-				System.out.println("> Great job, " + userName);//tell user they did a great job if they won
+				System.out.println("> Great job, " + userName + "! You placed down all your cards before the CPU!");//tell user they did a great job if they won
 			}
 			
 			do { //create do-while loop to ensure user responds with yes or no
@@ -115,12 +125,10 @@ public class Crazy8s {
 		System.out.println("> Thanks for playing...");
 		System.out.println(titleCard);
 		System.out.println("> Game closing...\n END");
-		
 		in.close(); //close scanner
 	}
 	
-	public static void showRules() { //this method asks the user if they want to see the rules, and prints them if necessary.
-		Scanner in = new Scanner(System.in);
+	public static void showRules(Scanner in) { //this method asks the user if they want to see the rules, and prints them if necessary.
 		String userInput = ""; //initiate user input to do do-while loop for error catching
 		do {
 			System.out.println("> Would you like to see the rules? (y/n): ");
@@ -128,9 +136,9 @@ public class Crazy8s {
 		} while (!userInput.equals("y") && !userInput.equals("n")); //continue to ask until user inputs either yes or no
 		
 		if (userInput.equals("y")) {
-			System.out.println("- - - - - - - - R U L E S- - - - - - - - ");
-			System.out.println("Crazy 8’s is a card game in which the objective is for players to discard all of the cards from their hand. ");
-			System.out.println("Players take turns discarding or picking up cards through their ability to match the rank or suit of the previous card placed down.");
+			System.out.println("                       - - - - - - - - R U L E S- - - - - - - -                        \n");
+			System.out.println("Crazy 8's is a card game in which the objective is for players to discard all of the cards from their hand. ");
+			System.out.println("Players take turns discarding or picking up cards through their ability to match the rank or suit of the previous card placed down.\n");
 			System.out.println("1. The user and CPU are each dealt 7 cards from a shuffled 52-card deck. The rest of the cards are put into the draw deck.");
 			System.out.println("2. The CPU will place down the first card. From there, if the user has any cards of the same suit, rank, or an 8, they may choose to place them down. They MUST put down a card if they can.");
 			System.out.println("3. If they do not have a card they can put down, they must take one from the draw deck.");
@@ -146,11 +154,10 @@ public class Crazy8s {
 		System.out.println("> Are you ready? (type anything to begin!)");
 		userInput = in.next();
 		System.out.println("> Game Beginning . . .\n");
-		in.close();
 	}
 	
 	public static void dealCards(String [] drawDeck, String [] player1, String [] player2) throws IOException{ //prepares and deals cards to players
-		String cardsFile = ("H:\\ICS3\\ICS3U\\src\\FinalProject\\cards.txt");
+		String cardsFile = ("Crazy8s\\cards.txt");
 		Scanner scanner = new Scanner(new File(cardsFile)); //create reader to get cards from file
 		int x = 0; //initiate counter variable
 		while (scanner.hasNext()) { //get all 52 cards from file, read them and put into draw deck
@@ -171,7 +178,6 @@ public class Crazy8s {
 			player1[i] = "NONE";
 			player2[i] = "NONE";
 		}
-
 		scanner.close();
 		
 	}
@@ -188,14 +194,14 @@ public class Crazy8s {
 		}
 	}
 	
-	public static void CPUsTurn(String[] drawDeck, String[] playerDeck, String[] CPUDeck) { //this method executes the CPU's turn
+	public static void CPUsTurn(String[] drawDeck, String[] playerDeck, String[] CPUDeck, Scanner in) { //this method executes the CPU's turn
 		Random randomGen = new Random(); //create new random generator
 		System.out.println("It's the CPU's turn to play a card!");
 		System.out.println("The CPU is thinking...\n");
 		boolean validCard = false; //initiaite boolean to check if card played is valid
 		String turn = "c"; //initiate turn variable to be passed into methods as 'c' for CPU
 		String chosenCard; //declare variable to store user's chosen card
-		
+
 		do { //create loop that continues until CPU chooses valid card
 			drawCheck(drawDeck, CPUDeck, turn); //pass decks into method that checks if card needs to be drawn
 			int randNum = randomGen.nextInt(20); //choose a random card index from CPU's 20 cards
@@ -213,51 +219,60 @@ public class Crazy8s {
 		
 		firstTurn = false; //set first turn flag to false once CPU has gone
 		prevCard = chosenCard; //set card at top of played card deck to chosen card
+		discard(CPUDeck, chosenCard); //discards played card
 		System.out.println("> The CPU has put down a [ " + chosenCard + " ], or a "); //tell user played card
 		translateCard(chosenCard); //translate card to words
-		cardCommands(drawDeck, playerDeck, CPUDeck, chosenCard, turn); //execute any commands for special cards
+		cardCommands(drawDeck, playerDeck, CPUDeck, chosenCard, turn, in); //execute any commands for special cards
 		System.out.println("> The CPU's turn is over.");
+
+
 	}
 	
-	public static void playersTurn(String[] drawDeck, String[] playerDeck, String[] CPUDeck, String userName) { //this method executes the player's turn
-		Scanner in = new Scanner(System.in); //create scanner for receiving user input
+	public static void playersTurn(String[] drawDeck, String[] playerDeck, String[] CPUDeck, String userName, Scanner in) { //this method executes the player's turn
 		boolean validCard = false;
 		String turn = "p"; //initiate turn variable to be passed into methods as 'p' for player
-		System.out.println("> Your turn has started! \n> Play a card, " + userName + "!"); //tell user its their turn
+		System.out.println("\n> Your turn has started! \n> Play a card, " + userName + "!"); //tell user its their turn
 		String chosenCard; // declare variable for stored card
-		
+
 		do { //create loop to ensure card chosen is valid
-			drawCheck(drawDeck, CPUDeck, turn); //check if draws need to happen
+			drawCheck(drawDeck, playerDeck, turn); //check if draws need to happen, execute if needed
 			printDeck(playerDeck); //print player's deck
-			System.out.println("> Choose a card to put down from your deck...\n"); //prompt user for card selection
-			chosenCard = in.nextLine(); //set chosen card to input
+			System.out.println("> Choose a card to put down from your deck. The top card is [ " + prevCard + " ] : "); //prompt user for card selection
+			chosenCard = in.nextLine();
 			String usage = "playCard"; //set variable that tells method what the card will be used for
 			validCard = validateCard(playerDeck, chosenCard, turn, usage); //check if card chosen is valid
 		} while (validCard == false); //continue to ask user for card input until they enter something valid
 		
 		prevCard = chosenCard; //set card at top of played deck to chosen card
+		discard(playerDeck, chosenCard); //discards played card
 		System.out.println("> You put down a [ " + chosenCard + " }, or a"); 
 		translateCard(chosenCard); //translate chosen card to words
-		cardCommands(drawDeck, playerDeck, CPUDeck, chosenCard, turn); //do any special card actions if necessary
+		cardCommands(drawDeck, playerDeck, CPUDeck, chosenCard, turn, in); //do any special card actions if necessary
 		System.out.println("> Your turn is over, " + userName + "."); //tell user their turn is over
-		in.close();
+
 	}
 	
 	public static boolean verifyEmpty(String[] deck) { //this method checks if a deck is empty
-		boolean isEmpty = true; //set boolean that checks if deck is empty to true
+		boolean isEmpty = true; //initiate boolean that checks if deck is empty to true
 		int n = deck.length; //get length of deck, store in variable for counted loop
 		for (int i = 0; i < n; i++) { //for every card
-			if (deck[i] != "NONE") { //if any one of the cards is not "NONE" (empty slot)
-				isEmpty = false; //then the deck is not empty
-				break; //leave loop as soon as there is one slot that isn't empty
+			if (!deck[i].equals("NONE")) { //if any one of the cards is not "NONE" (empty slot)
+				return (isEmpty = false); //then the deck is not empty
 			}
 		}
 		return isEmpty; //return whetehr or not the deck is empty
 	}
 	
+	public static void discard(String[] deck, String chosenCard) { //this method discards a played card
+		for (int i = 0; i < 20; i++) {
+			if (chosenCard.equals(deck[i])) {
+				deck[i] = "NONE";
+			}
+		}
+	}
 	public static void drawCheck(String[] drawDeck, String[] deck, String turn) { //this method checks and carries out the withdrawal of cards from the draw deck
+		boolean deckEmpty = verifyEmpty(drawDeck); //check if draw deck is empty
 		if (firstTurn == false) { //if it isn't the first turn, check if any cards need to be picked up. otherwise, ignore b/c CPU will put down first card, no cards need to be drawn
-			boolean deckEmpty = verifyEmpty(drawDeck); //check if draw deck is empty
 			int n = deck.length; //store length of deck passed in for loops
 			String usage = "checkCard"; //set usage to be passed into validCard method as check-only
 			boolean isValid = false; //set whether there is a card that can be played in player's deck or not
@@ -291,23 +306,23 @@ public class Crazy8s {
 								}
 							}
 							System.out.println("> The CPU drew a card."); //tell user the CPU drew a card.
-							
+							deckEmpty = verifyEmpty(drawDeck); //reverify if draw deck is empty
 						}
 						
 					}
 				} else if (turn.equals("p")) { //but if it is the player's turn (same thing)
 					for (int i = 0; i < n; i++) { 
-						isValid = validateCard(deck, deck[i], turn, usage); //check if any of the cards can be played
-						if (isValid == true) {
-							break;
+							isValid = validateCard(deck, deck[i], turn, usage); //check if any of the cards can be played
+							if (isValid == true) {
+								break;
+							}
 						}
-					}
 					if (isValid == false) {
 						if (deckEmpty == true) {
 							System.out.println("> Your turn was skipped. There are no cards in the draw deck.");
 						} else {
 							shuffle(drawDeck); //shuffle draw deck
-							System.out.println("> You must draw a card!");
+							System.out.println("\n> You must draw a card!");
 							String drawnCard = ""; //declare variable for drawn card
 							
 							for (int i = 0; i < 52; i++) { //iterate through draw deck to find a card that can be drawn
@@ -319,20 +334,18 @@ public class Crazy8s {
 							}
 							for (int i = 0; i < n; i++) { //iterate through CPU's deck to find a place to put down the card
 								if (!deck[i].equals("NONE")) { //if there is an empty spot
-									deck[i] = drawnCard; //set empty spot to drawn card
+									deck[i] = drawnCard; //replace empty spot with drawn card
 									break; //leave loop
 								}
 							}
+							deckEmpty = verifyEmpty(drawDeck); //reverify if draw deck is empty
 							System.out.println("> You drew a [ " + drawnCard + " ] , or a "); //tell user the card they drew
 							translateCard(drawnCard); //translate card name to words
 						}
 					}
 				}
 			}
-		} else {
-			System.out.println("> The CPU is placing down the first card...");
-		}
-		
+		} 
 	}
 	
 	public static boolean validateCard(String[] deck, String chosenCard, String turn, String usage) { //this method validates whether a card can be played, according to the previous played card
@@ -357,6 +370,13 @@ public class Crazy8s {
 		if (cardExists == true) { //if the card is present
 			if (usage.equals("checkCard") || usage.equals("playCard")) { //if the card is either be played or checked if it can be played, check here:
 				if (chosenCard.charAt(1) == '8') { //if the card is an 8, it can always be played
+					if (usage.equals("playCard")) { //if the card is being played by either CPU or player, modify their deck
+							for (int i = 0; i < 20; i++) {
+								if (chosenCard.equals(deck[i])) {
+									deck[i] = "NONE"; //replace the played card in the player's deck with an empty slot
+								}
+							} 
+					}
 					return (isValid = true); //return that it is a valid card
 				} else { //otherwise, check if card matches the suit or rank of the previously played card
 					char validSuit = prevCard.charAt(0); //store the suit of the previous card played
@@ -372,8 +392,8 @@ public class Crazy8s {
 						} 
 						return (isValid = true); //return that card can indeed be played 
 					} else { //otherwise, if the card does not match either rank or suit
-						if (turn.equals("p")) {
-							System.out.println("> Please choose a card of the same rank, suit, or an 8"); //tell user to choose a card that matches prevcard
+						if (turn.equals("p") && !usage.equals("checkCard")) { //prints message for a card that can't be played only if player's turn and the card isn't just being checked
+							System.out.println("\n> Please choose a card of the same rank, suit, or an 8"); //tell user to choose a card that matches prevcard
 						}
 						return isValid; //return that the card is not valid
 					}
@@ -384,15 +404,15 @@ public class Crazy8s {
 			
 		} 
 		
-		if (!usage.equals("checkExists")) {
-			System.out.println("> Please choose a valid card from your deck..."); //tells player to choose a valid card; no conditional needed for player b/c this will only happen for player input
+		if (!usage.equals("checkExists")) { //print message if card chosen by user or cpu doesn't exist. this will only happen with user input
+			System.out.println("\n> Please choose a valid card from your deck...\n"); //tells player to choose a valid card; no conditional needed for player b/c this will only happen for player input
 			return isValid; //return that card is not valid
 		} else {
 			return isValid;
 		}
 	}
 	
-	public static void cardCommands(String[] drawDeck, String[] playerDeck, String[] CPUDeck, String chosenCard, String turn) { //this method executes any special cards' commands
+	public static void cardCommands(String[] drawDeck, String[] playerDeck, String[] CPUDeck, String chosenCard, String turn, Scanner in) { //this method executes any special cards' commands
 		boolean emptyDeck = verifyEmpty(drawDeck); //check if draw deck is empty before any commands are played
 		
 		if (chosenCard.equals("HQ")) { //if a queen of cards is played, the other player must draw a card
@@ -447,17 +467,15 @@ public class Crazy8s {
 			}
 		} else if (chosenCard.equals("CJ")) { //if the played card is a jack of clubs, the opponent must get a card from the player's hand
 			if (turn.equals("p")) { //if it is the player's turn..
-				Scanner in = new Scanner(System.in); //create scanner to retrieve user's chosen card
 				System.out.println("> 0-0 Your JACK of CLUBS will make the CPU pick up one of your cards! 0-0");
 				boolean validCard = false; //initiate boolean to check if chosen card is valid
 				String givenCard = ""; //initiate givenCard variable so it can be handled outside loop
-				while (validCard = false) {
+				while (validCard == false) {
 					System.out.println("> Choose one of your cards to give to the CPU.");
 					printDeck(playerDeck); //prints player's deck so they can see their cards
 					givenCard = in.next();
 					String usage = "checkExists"; //set usage to be passed into validcard method. This only checks 
 					validCard = validateCard(playerDeck, givenCard, turn, usage);
-					in.close();
 				}
 				for (int i = 0; i < 20; i++) { //iterate through each of player's cards to remove the chosen card
 					if (playerDeck[i].equals(givenCard)) {
@@ -481,9 +499,8 @@ public class Crazy8s {
 				while (validCard == false) {
 					int randomNum = randomGen.nextInt(20); //generate card index num from 0-19
 					givenCard = CPUDeck[randomNum];
-					if (!givenCard.equals("NONE")) { //if the card at the index isn't empty, validate it
-						String usage = "checkExists"; 
-						validCard = validateCard(CPUDeck, givenCard, turn, usage);
+					if (!givenCard.equals("NONE")) { //if the card at the index isn't empty, consider it to be a valid card
+						validCard = true;
 					}
 				}
 				//iterate through CPU's deck to replace card, iterate through player's card 
@@ -586,30 +603,35 @@ public class Crazy8s {
 			}
 		}
 		//use bubble sort to sort both types of cards
-		for (int i = 0; i < numberCardCount; i++) {
-			for (int j = 1; j < numberCardCount; j++) {
-				int num1 = numberCards[j-1].charAt(1); //set variables for number
-				int num2 = numberCards[j].charAt(1);
-				if (num1 > num2) {
-					String temp = numberCards[j-1];
-					numberCards[j-1] = numberCards[j];
-					numberCards[j] = temp;
+		if (numberCardCount > 1) { //only sort if more than one card
+			for (int i = 0; i < numberCardCount; i++) {
+				for (int j = 1; j < numberCardCount; j++) {
+					int num1 = numberCards[j-1].charAt(1); //set variables for number
+					int num2 = numberCards[j].charAt(1);
+					if (num1 > num2) {
+						String temp = numberCards[j-1];
+						numberCards[j-1] = numberCards[j];
+						numberCards[j] = temp;
+					}
 				}
 			}
+		
 		}
 		
 		String sortedFace = "CJ DJ HJ SJ CQ DQ HQ SQ CK DK HK SK"; //initiate string with sorted face cards to compare to
-		for (int i = 0; i < faceCardCount; i++) {
-			for (int j = 1; j < faceCardCount; j++) {
-				int num1 = sortedFace.indexOf(faceCards[j-1]); //set numbers to be compared to the index of sorted cards in sortedFace
-				int num2 = sortedFace.indexOf(faceCards[j]);
-				if (num1 > num2) {
-					String temp = numberCards[j-1];
-					numberCards[j-1] = numberCards[j];
-					numberCards[j] = temp;
+		if (faceCardCount > 1) { //only sort if more than one card
+			for (int i = 0; i < faceCardCount; i++) {
+				for (int j = 1; j < faceCardCount; j++) {
+					int num1 = sortedFace.indexOf(faceCards[j-1]); //set numbers to be compared to the index of sorted cards in sortedFace
+					int num2 = sortedFace.indexOf(faceCards[j]);
+					if (num1 > num2) {
+						String temp = numberCards[j-1];
+						numberCards[j-1] = numberCards[j];
+						numberCards[j] = temp;
+					}
 				}
 			}
-		}
+		} 
 		
 		int currIndex = 0; //create index counter to start putting sorted cards into player's deck
 		// fill with number cards, then face cards, then fill remaining space with empty slots.
@@ -631,7 +653,7 @@ public class Crazy8s {
 				System.out.print("[ " + playerDeck[i] + " ] ");
 			}
 		}
-		System.out.println("\n> Please note that '0's are TENS !");
+		System.out.println("\n> Please note that '0's are TENS !\n");
 	}
 
 	public static int calculatePoints(String[] deck, String player) throws IOException{ //this method calculates the total points of the player/CPU across all rounds
