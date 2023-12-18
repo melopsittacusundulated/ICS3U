@@ -654,6 +654,7 @@ String loseCard = "                                                             
 			}
 		}
 		System.out.println("\n> Please note that '0's are TENS !\n");
+		System.out.println("> Remember; 8's can be put down at any time! You will be forced to play your 8 if it is the only valid card you can play.");
 	}
 
 	public static int calculatePoints(String[] deck, String player) throws IOException{ //this method calculates the total points of the player/CPU across all rounds
