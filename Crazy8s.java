@@ -9,7 +9,7 @@ import java.util.Random;
  * TO DO:
  * find out why extra line is printed after first put down card prompt
  * figure out numberformatexception with points file after saying yes to rounds
- * after file io and extra line, you're finished!!! congrats
+ * after file io and extra line, youre finished congrats
 
  */
 public class Crazy8s {
@@ -625,9 +625,9 @@ String loseCard = "                                                             
 					int num1 = sortedFace.indexOf(faceCards[j-1]); //set numbers to be compared to the index of sorted cards in sortedFace
 					int num2 = sortedFace.indexOf(faceCards[j]);
 					if (num1 > num2) {
-						String temp = numberCards[j-1];
-						numberCards[j-1] = numberCards[j];
-						numberCards[j] = temp;
+						String temp = faceCards[j-1];
+						faceCards[j-1] = faceCards[j];
+						faceCards[j] = temp;
 					}
 				}
 			}
@@ -653,7 +653,7 @@ String loseCard = "                                                             
 				System.out.print("[ " + playerDeck[i] + " ] ");
 			}
 		}
-		System.out.println("\n> Please note that '0's are TENS !\n");
+		System.out.println("\n> Please note that '0's are TENS !");
 		System.out.println("> Remember; 8's can be put down at any time! You will be forced to play your 8 if it is the only valid card you can play.");
 	}
 
