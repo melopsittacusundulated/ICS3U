@@ -50,7 +50,7 @@ String loseCard = "                                                             
 		String userInput; //create user input storage variable
 		int userPoints = 0; //create variable to hold player's points
 		int CPUPoints = 0; //same for CPU
-
+		
 		//welcome user to game
 		System.out.println("> Starting game...");
 		System.out.println(titleCard); //show 'crazy 8's' title card to player
@@ -157,7 +157,7 @@ String loseCard = "                                                             
 	}
 	
 	public static void dealCards(String [] drawDeck, String [] player1, String [] player2) throws IOException{ //prepares and deals cards to players
-		String cardsFile = ("Crazy8s\\cards.txt");
+		String cardsFile = ("H:\\ICS3\\ICS3U\\src\\FinalProject\\cards.txt"); //file path for cards
 		Scanner scanner = new Scanner(new File(cardsFile)); //create reader to get cards from file
 		int x = 0; //initiate counter variable
 		while (scanner.hasNext()) { //get all 52 cards from file, read them and put into draw deck
@@ -300,7 +300,7 @@ String loseCard = "                                                             
 								}
 							}
 							for (int i = 0; i < n; i++) { //iterate through CPU's deck to find a place to put down the card
-								if (!deck[i].equals("NONE")) { //if there is an empty spot
+								if (deck[i].equals("NONE")) { //if there is an empty spot
 									deck[i] = drawnCard; //set empty spot to drawn card
 									break; //leave loop
 								}
@@ -320,6 +320,7 @@ String loseCard = "                                                             
 					if (isValid == false) {
 						if (deckEmpty == true) {
 							System.out.println("> Your turn was skipped. There are no cards in the draw deck.");
+							break; //leave immediately to avoid loop
 						} else {
 							shuffle(drawDeck); //shuffle draw deck
 							System.out.println("\n> You must draw a card!");
@@ -333,7 +334,7 @@ String loseCard = "                                                             
 								}
 							}
 							for (int i = 0; i < n; i++) { //iterate through CPU's deck to find a place to put down the card
-								if (!deck[i].equals("NONE")) { //if there is an empty spot
+								if (deck[i].equals("NONE")) { //if there is an empty spot
 									deck[i] = drawnCard; //replace empty spot with drawn card
 									break; //leave loop
 								}
@@ -660,41 +661,52 @@ String loseCard = "                                                             
 	public static int calculatePoints(String[] deck, String player) throws IOException{ //this method calculates the total points of the player/CPU across all rounds
 		int roundPoints = 0; //initiate variable to calculate amount of points earned in round
 		int totalPoints = 0; //create variable to calculate total points in round
+		boolean winFlag = true; //create boolean to express if the player/cpu has won
 		
 		for (int i = 0; i < 20; i++) { //go through every card, add points accordingly
 			if (!deck[i].equals("NONE")) { //except the empty slots
-				if (deck[i].charAt(1) == '8') { // add 100 points if a leftover card is an 8
-					roundPoints += 100;
-				} else if (deck[i].charAt(1) == 'J' || deck[i].charAt(1) == 'Q' || deck[i].charAt(1) == 'K') { // add 50 points to face card
+				winFlag = false; //set win flag to false b/c they still have cards
+				if (deck[i].charAt(1) == '8') { // add 50 points if a leftover card is an 8
 					roundPoints += 50;
+				} else if (deck[i].charAt(1) == 'J' || deck[i].charAt(1) == 'Q' || deck[i].charAt(1) == 'K') { // add 25 points to face card
+					roundPoints += 25;
 				} else {
-					roundPoints += 25; // give 25 points for each number card
+					roundPoints += 5; // give 5 points for each number card
 				}
 			}
 		}
 		
-		if (player.equals("p")) {
-			PrintWriter pointWriter = new PrintWriter(new FileWriter ("playerPoints.txt", true)); //open file writer for appending to player's point file
-			pointWriter.println(roundPoints); //print round's points on new line
-			Scanner myFileScanner = new Scanner("playerPoints.txt"); //create scanner to read and add up all points
-			while (myFileScanner.hasNext()) { //add upp all lines of point file to get total points
-				int points = Integer.parseInt(myFileScanner.next());
-				totalPoints += points;
+		if (winFlag == true) { //if the player won, give them 1000 points for this round
+			roundPoints = 1000;
+		}
+		
+		if (player.equals("p")) { //open player file if it is players deck passed in
+			String playerFile = "H:\\ICS3\\ICS3U\\src\\FinalProject\\playerPoints.txt";
+			PrintWriter pointWriter = new PrintWriter(new FileWriter (playerFile, true)); //open file writer for appending to player's point file
+			pointWriter.println(roundPoints); //print round's points on new line (append)
+			System.out.println(roundPoints); //test
+			Scanner myFileScanner = new Scanner(playerFile); //create scanner to read and add up all points
+			while (myFileScanner.hasNext()) { //add up all lines of point file to get total points
+				String points = myFileScanner.next();
+				System.out.println(points); //test
+				totalPoints += Integer.valueOf(points);
 			}
 			pointWriter.close(); //close to save file
 			myFileScanner.close();
 		} else { //calculate points if CPU deck passed in
-			PrintWriter pointWriter = new PrintWriter(new FileWriter ("CPUPoints.txt", true)); //open file writer for appending to player's point file
-			pointWriter.println(roundPoints); //print round's points on new line
-			Scanner myFileScanner = new Scanner("CPUPoints.txt"); //create scanner to read and add up all points
+			String CPUFile = "H:\\ICS3\\ICS3U\\src\\FinalProject\\CPUPoints.txt";
+			PrintWriter pointWriter = new PrintWriter(new FileWriter (CPUFile, true)); //open file writer for appending to player's point file
+			pointWriter.println(roundPoints); //print round's points on new line (append)
+			Scanner myFileScanner = new Scanner(CPUFile); //create scanner to read and add up all points
 			while (myFileScanner.hasNext()) { //add up all lines of point file to get total points
-				int points = Integer.parseInt(myFileScanner.next());
-				totalPoints += points;
+				String points = myFileScanner.next();
+				totalPoints += Integer.valueOf(points);
 			}
 			pointWriter.close(); //close to save file
 			myFileScanner.close();
 		}
 		
 		return totalPoints; //return the total amount of points across all rounds to method invoked
+
 	}
 }
