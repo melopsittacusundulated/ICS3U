@@ -9,14 +9,16 @@ import java.util.Random;
  * TO DO:
  * find out why extra line is printed after first put down card prompt
  * figure out numberformatexception with points file after saying yes to rounds
- * after file io and extra line, youre finished congrats
+ * FIND OUT WHY CPU CANT PLAY? THERES SOMETHING WRONG WITH CANTDRAW BOOLEANS
 
  */
 public class Crazy8s {
 	static String prevCard = "  "; //create global variable to store previous card put down. This is the placeholder.
 	static int roundCounter = 1; //create variable to keep track of rounds
 	static boolean firstTurn; //declare boolean for first turn to be used across several classes
-
+	static boolean cantDrawUser = false; //create boolean to track whether player cant draw when it needs to
+	static boolean cantDrawCPU = false; //create boolean to track whether CPU can't draw when it needs to; skips if necessary
+	
 	public static void main(String[] args) throws IOException {
 		Scanner in = new Scanner(System.in);
 		
@@ -124,7 +126,7 @@ String loseCard = "                                                             
 		//thank player for playing, end game
 		System.out.println("> Thanks for playing...");
 		System.out.println(titleCard);
-		System.out.println("> Game closing...\n END");
+		System.out.println("> Game closing...\nEND");
 		in.close(); //close scanner
 	}
 	
@@ -200,31 +202,37 @@ String loseCard = "                                                             
 		System.out.println("The CPU is thinking...\n");
 		boolean validCard = false; //initiaite boolean to check if card played is valid
 		String turn = "c"; //initiate turn variable to be passed into methods as 'c' for CPU
-		String chosenCard; //declare variable to store user's chosen card
+		String chosenCard = ""; //initiate variable to store user's chosen card
 
 		do { //create loop that continues until CPU chooses valid card
 			drawCheck(drawDeck, CPUDeck, turn); //pass decks into method that checks if card needs to be drawn
-			int randNum = randomGen.nextInt(20); //choose a random card index from CPU's 20 cards
-			chosenCard = CPUDeck[randNum]; //set chosen card to randomly chosen card
-			if (firstTurn == true) { //allow CPU to put down any card for first turn
-				if (!chosenCard.equals("NONE")) {
-					validCard = true;
+			if (cantDrawCPU == true) { //if the CPU needs to draw a card but the deck is empty, skip turn
+				validCard = true; //breaks out of validation loop
+			}  else {
+				int randNum = randomGen.nextInt(20); //choose a random card index from CPU's 20 cards
+				chosenCard = CPUDeck[randNum]; //set chosen card to randomly chosen card
+				if (firstTurn == true) { //allow CPU to put down any card for first turn
+					if (!chosenCard.equals("NONE")) { //allow any card that isnt empty
+						validCard = true;
+					} else {
+						String usage = "playCard"; //set variable to pass into validCard that tells usage of card (affects handling of card)
+						validCard = validateCard(CPUDeck, chosenCard, turn, usage); //reset validCard boolean to check if chosen card can be played
+					}	
 				}
-			} else {
-				String usage = "playCard"; //set variable to pass into validCard that tells usage of card (affects handling of card)
-				validCard = validateCard(CPUDeck, chosenCard, turn, usage); //reset validCard boolean to check if chosen card can be played
 			}
 			
 		} while (validCard == false); 
 		
 		firstTurn = false; //set first turn flag to false once CPU has gone
-		prevCard = chosenCard; //set card at top of played card deck to chosen card
-		discard(CPUDeck, chosenCard); //discards played card
-		System.out.println("> The CPU has put down a [ " + chosenCard + " ], or a "); //tell user played card
-		translateCard(chosenCard); //translate card to words
-		cardCommands(drawDeck, playerDeck, CPUDeck, chosenCard, turn, in); //execute any commands for special cards
+		if (cantDrawCPU == false) {//if the cpu was able to have a turn, set prevcard and print messages
+			prevCard = chosenCard; //set card at top of played card deck to chosen card
+			discard(CPUDeck, chosenCard); //discards played card
+			System.out.println("> The CPU has put down a [ " + chosenCard + " ], or a "); //tell user played card
+			translateCard(chosenCard); //translate card to words
+			cardCommands(drawDeck, playerDeck, CPUDeck, chosenCard, turn, in); //execute any commands for special cards
+		}
 		System.out.println("> The CPU's turn is over.");
-
+		cantDrawCPU = false; //reset ability to draw for next turn
 
 	}
 	
@@ -232,24 +240,32 @@ String loseCard = "                                                             
 		boolean validCard = false;
 		String turn = "p"; //initiate turn variable to be passed into methods as 'p' for player
 		System.out.println("\n> Your turn has started! \n> Play a card, " + userName + "!"); //tell user its their turn
-		String chosenCard; // declare variable for stored card
+		String chosenCard = ""; // initiate variable for stored card
 
 		do { //create loop to ensure card chosen is valid
 			drawCheck(drawDeck, playerDeck, turn); //check if draws need to happen, execute if needed
-			printDeck(playerDeck); //print player's deck
-			System.out.println("> Choose a card to put down from your deck. The top card is [ " + prevCard + " ] : "); //prompt user for card selection
-			chosenCard = in.nextLine();
-			String usage = "playCard"; //set variable that tells method what the card will be used for
-			validCard = validateCard(playerDeck, chosenCard, turn, usage); //check if card chosen is valid
+			if (cantDrawUser == true) { //if user can't draw but needs to skip turn
+				validCard = true; //leave validation loop
+			} else {
+				printDeck(playerDeck); //print player's deck
+				System.out.println("> Remember; 8's can be put down at any time! You will be forced to play your 8 if it is the only valid card you can play.");
+				System.out.println("> Choose a card to put down from your deck. The top card is [ " + prevCard + " ] : "); //prompt user for card selection
+				chosenCard = in.nextLine();
+				String usage = "playCard"; //set variable that tells method what the card will be used for
+				validCard = validateCard(playerDeck, chosenCard, turn, usage); //check if card chosen is valid
+			}
 		} while (validCard == false); //continue to ask user for card input until they enter something valid
 		
-		prevCard = chosenCard; //set card at top of played deck to chosen card
-		discard(playerDeck, chosenCard); //discards played card
-		System.out.println("> You put down a [ " + chosenCard + " }, or a"); 
-		translateCard(chosenCard); //translate chosen card to words
-		cardCommands(drawDeck, playerDeck, CPUDeck, chosenCard, turn, in); //do any special card actions if necessary
-		System.out.println("> Your turn is over, " + userName + "."); //tell user their turn is over
+		if (cantDrawUser == false) { //set card and messages if player has gone
+			prevCard = chosenCard; //set card at top of played deck to chosen card
+			discard(playerDeck, chosenCard); //discards played card
+			System.out.println("> You put down a [ " + chosenCard + " }, or a"); 
+			translateCard(chosenCard); //translate chosen card to words
+			cardCommands(drawDeck, playerDeck, CPUDeck, chosenCard, turn, in); //do any special card actions if necessary
+		}
 
+		System.out.println("> Your turn is over, " + userName + "."); //tell user their turn is over
+		cantDrawUser = false; //reset ability to not draw cards when needed
 	}
 	
 	public static boolean verifyEmpty(String[] deck) { //this method checks if a deck is empty
@@ -287,9 +303,11 @@ String loseCard = "                                                             
 					if (isValid == false) { //if there are no valid cards
 						if (deckEmpty == true) {
 							System.out.println("> The CPU's turn was skipped; there are no cards in the draw deck.");
+							cantDrawCPU = true; //set the inability of the CPU to draw cards if needed as true
+							break; //leave loop to avoid infinitely printing message
 						} else { //but if the draw deck is not empty, draw cards
 							shuffle(drawDeck); //shuffle draw deck
-							System.out.println("> The CPU is drawing a card..."); //tell user the CPU is drawing a card
+							System.out.println("> The CPU is drawing a card...\n"); //tell user the CPU is drawing a card
 							String drawnCard = ""; //declare variable for drawn card
 							
 							for (int i = 0; i < 52; i++) { //iterate through draw deck to find a card that can be drawn
@@ -320,7 +338,8 @@ String loseCard = "                                                             
 					if (isValid == false) {
 						if (deckEmpty == true) {
 							System.out.println("> Your turn was skipped. There are no cards in the draw deck.");
-							break; //leave immediately to avoid loop
+							cantDrawUser = true; //set the inability of the player to draw cards if needed as true
+							break; //leave immediately to avoid looping message
 						} else {
 							shuffle(drawDeck); //shuffle draw deck
 							System.out.println("\n> You must draw a card!");
@@ -655,7 +674,6 @@ String loseCard = "                                                             
 			}
 		}
 		System.out.println("\n> Please note that '0's are TENS !");
-		System.out.println("> Remember; 8's can be put down at any time! You will be forced to play your 8 if it is the only valid card you can play.");
 	}
 
 	public static int calculatePoints(String[] deck, String player) throws IOException{ //this method calculates the total points of the player/CPU across all rounds
@@ -687,9 +705,10 @@ String loseCard = "                                                             
 			System.out.println(roundPoints); //test
 			Scanner myFileScanner = new Scanner(playerFile); //create scanner to read and add up all points
 			while (myFileScanner.hasNext()) { //add up all lines of point file to get total points
-				String points = myFileScanner.next();
+				String getPoints = myFileScanner.next();
+				int points = Integer.valueOf(getPoints);
 				System.out.println(points); //test
-				totalPoints += Integer.valueOf(points);
+				totalPoints += points;
 			}
 			pointWriter.close(); //close to save file
 			myFileScanner.close();
@@ -699,8 +718,9 @@ String loseCard = "                                                             
 			pointWriter.println(roundPoints); //print round's points on new line (append)
 			Scanner myFileScanner = new Scanner(CPUFile); //create scanner to read and add up all points
 			while (myFileScanner.hasNext()) { //add up all lines of point file to get total points
-				String points = myFileScanner.next();
-				totalPoints += Integer.valueOf(points);
+				String getPoints = myFileScanner.next();
+				int points = Integer.valueOf(getPoints);
+				totalPoints += points;
 			}
 			pointWriter.close(); //close to save file
 			myFileScanner.close();
