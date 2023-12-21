@@ -6,15 +6,10 @@ import java.util.Random;
  * Name: Dorothy Lin
  * Date: 2023-22-12
  * Description: This is a console-based version of the popular card game Crazy 8's. Enjoy! :D
- * TO DO:
- * find out why extra line is printed after first put down card prompt
- * figure out numberformatexception with points file after saying yes to rounds
- * FIND OUT WHY CPU CANT PLAY? THERES SOMETHING WRONG WITH CANTDRAW BOOLEANS
-
  */
 public class Crazy8s {
 	static String prevCard = "  "; //create global variable to store previous card put down. This is the placeholder.
-	static int roundCounter = 1; //create variable to keep track of rounds
+	static int roundCounter = 0; //create variable to keep track of rounds
 	static boolean firstTurn; //declare boolean for first turn to be used across several classes
 	static boolean cantDrawUser = false; //create boolean to track whether player cant draw when it needs to
 	static boolean cantDrawCPU = false; //create boolean to track whether CPU can't draw when it needs to; skips if necessary
@@ -49,7 +44,12 @@ String loseCard = "                                                             
 "                                        | |                                                | |                   \n" +
 "                                       (___)                                              (___)                  "; //text from fancytextpro.com, 'sweet'
 
-		String userInput; //create user input storage variable
+		//clear point files in case game has been run more than once
+		String playerPointsFile = "C:\\Users\\dorothy\\Documents\\VSCode_for_Java\\\\ICS3U\\playerPoints.txt";
+		String CPUPointsFile = "C:\\Users\\dorothy\\Documents\\VSCode_for_Java\\ICS3U\\Crazy8s\\CPUPoints.txt";
+		clearFile(playerPointsFile);
+		clearFile(CPUPointsFile);
+
 		int userPoints = 0; //create variable to hold player's points
 		int CPUPoints = 0; //same for CPU
 		
@@ -60,14 +60,15 @@ String loseCard = "                                                             
 		String userName = in.next(); //get next word or name they they type in as user name
 		System.out.println("> Welcome to CRAZY 8's, " + userName + "!");
 		showRules(in); //show rules to user, start game, pass in scanner
-		
+
 		boolean playAgain = true; // create boolean to facilitate whether ENTIRE game restarts or not
-		
+
 		while (playAgain == true) { //runs continuously for each round while user decides to play again.
 			String[] drawDeck = new String[52]; //initiate draw deck array
 			String[] playerDeck = new String[20]; //initiate player's deck, space for 20 cards (it is highly unlikely they will exceed over 20 cards without being able to put down one.)
 			String CPUDeck[] = new String[20]; //initiate CPU's deck
-			
+			String userInput; //create user input storage variable
+
 			dealCards(drawDeck, playerDeck, CPUDeck); //deal cards from draw deck to players' decks
 			
 			boolean CPUWin = false; //reset player "winning" booleans to false so that game plays
@@ -101,15 +102,16 @@ String loseCard = "                                                             
 			} while (!userInput.equalsIgnoreCase("y") && !userInput.equalsIgnoreCase("n"));
 			
 			if (userInput.equalsIgnoreCase("y")) { //if the user says yes, create round system
-				String player = "p"; //initiate variable to pass onto point calculation method, to indicate whether CPU or player
-				userPoints = calculatePoints(playerDeck, player); //calculate points from prev. rounds
-				player = "c"; //set player to 'c' for CPU
-				CPUPoints = calculatePoints(CPUDeck, player); //calculate points from prev rounds
+				
 				System.out.println("> New round starting...");
 				roundCounter++; //increment round counter
 			} else {
 				playAgain = false; //tell program the player doesn't want to play anymore. Ends loop.
 			}
+			String player = "p"; //initiate variable to pass onto point calculation method, to indicate whether CPU or player
+			userPoints = calculatePoints(playerDeck, player); //calculate points from prev. rounds
+			player = "c"; //set player to 'c' for CPU
+			CPUPoints = calculatePoints(CPUDeck, player); //calculate points from prev rounds
 		} //end of rounds/game loop
 		
 		if (roundCounter > 1) { //if more than one round was played, show overall winner
@@ -146,7 +148,7 @@ String loseCard = "                                                             
 			System.out.println("3. If they do not have a card they can put down, they must take one from the draw deck.");
 			System.out.println("4. They may discard the card they received from the draw deck if possible (if the top card has the same rank, suit, or the card just drawn is an 8). If not, the player’s turn ends.");
 			System.out.println("5. The CPU and player will take turns doing this until one of them discards their entire hand; this person is the winner.");
-			System.out.println("6. If the player wants to keep playing, they will be rewarded points so that an “overall” winner can be determined after all rounds conclude. The winner of each round is given 1000 points, while the loser’s points are determined by their leftover hand; number cards are worth 25 points, face cards are worth 50, and 8’s are worth 100.");
+			System.out.println("6. If the player wants to keep playing, they will be rewarded points so that an “overall” winner can be determined after all rounds conclude. The winner of each round is given 500 points, while the loser’s points are determined by their leftover hand; number cards are worth 25 points, face cards are worth 50, and 8’s are worth 100.");
 			System.out.println("7. There are 3 special cards other than the 8's... Play to find out!");
 			System.out.println("> Please note that 0s in number cards (Ex. S0, ten of spades) means the 'ten' card.");
 		}
@@ -156,10 +158,11 @@ String loseCard = "                                                             
 		System.out.println("> Are you ready? (type anything to begin!)");
 		userInput = in.next();
 		System.out.println("> Game Beginning . . .\n");
+		in.nextLine(); //clear newline character
 	}
 	
 	public static void dealCards(String [] drawDeck, String [] player1, String [] player2) throws IOException{ //prepares and deals cards to players
-		String cardsFile = ("H:\\ICS3\\ICS3U\\src\\FinalProject\\cards.txt"); //file path for cards
+		String cardsFile = ("C:\\Users\\dorothy\\Documents\\VSCode_for_Java\\ICS3U\\Crazy8s\\cards.txt"); //file path for cards "H:\\ICS3\\ICS3U\\src\\FinalProject\\cards.txt"
 		Scanner scanner = new Scanner(new File(cardsFile)); //create reader to get cards from file
 		int x = 0; //initiate counter variable
 		while (scanner.hasNext()) { //get all 52 cards from file, read them and put into draw deck
@@ -208,16 +211,16 @@ String loseCard = "                                                             
 			drawCheck(drawDeck, CPUDeck, turn); //pass decks into method that checks if card needs to be drawn
 			if (cantDrawCPU == true) { //if the CPU needs to draw a card but the deck is empty, skip turn
 				validCard = true; //breaks out of validation loop
-			}  else {
+			} else {
 				int randNum = randomGen.nextInt(20); //choose a random card index from CPU's 20 cards
 				chosenCard = CPUDeck[randNum]; //set chosen card to randomly chosen card
 				if (firstTurn == true) { //allow CPU to put down any card for first turn
 					if (!chosenCard.equals("NONE")) { //allow any card that isnt empty
 						validCard = true;
-					} else {
-						String usage = "playCard"; //set variable to pass into validCard that tells usage of card (affects handling of card)
-						validCard = validateCard(CPUDeck, chosenCard, turn, usage); //reset validCard boolean to check if chosen card can be played
-					}	
+					} 
+				} else {
+					String usage = "playCard"; //set variable to pass into validCard that tells usage of card (affects handling of card)
+					validCard = validateCard(CPUDeck, chosenCard, turn, usage); //reset validCard boolean to check if chosen card can be played
 				}
 			}
 			
@@ -342,7 +345,7 @@ String loseCard = "                                                             
 							break; //leave immediately to avoid looping message
 						} else {
 							shuffle(drawDeck); //shuffle draw deck
-							System.out.println("\n> You must draw a card!");
+							System.out.println("> You must draw a card!");
 							String drawnCard = ""; //declare variable for drawn card
 							
 							for (int i = 0; i < 52; i++) { //iterate through draw deck to find a card that can be drawn
@@ -676,7 +679,7 @@ String loseCard = "                                                             
 		System.out.println("\n> Please note that '0's are TENS !");
 	}
 
-	public static int calculatePoints(String[] deck, String player) throws IOException{ //this method calculates the total points of the player/CPU across all rounds
+	public static int calculatePoints(String[] deck, String player) throws IOException{ //this method calculates the total points of the player/CPU across all rounds, as well as updates the files
 		int roundPoints = 0; //initiate variable to calculate amount of points earned in round
 		int totalPoints = 0; //create variable to calculate total points in round
 		boolean winFlag = true; //create boolean to express if the player/cpu has won
@@ -695,38 +698,39 @@ String loseCard = "                                                             
 		}
 		
 		if (winFlag == true) { //if the player won, give them 1000 points for this round
-			roundPoints = 1000;
+			roundPoints = 500;
 		}
 		
 		if (player.equals("p")) { //open player file if it is players deck passed in
-			String playerFile = "H:\\ICS3\\ICS3U\\src\\FinalProject\\playerPoints.txt";
+			String playerFile = "C:\\Users\\dorothy\\Documents\\VSCode_for_Java\\ICS3U\\playerPoints.txt"  ; //"H:\\ICS3\\ICS3U\\src\\FinalProject\\playerPoints.txt"
 			PrintWriter pointWriter = new PrintWriter(new FileWriter (playerFile, true)); //open file writer for appending to player's point file
 			pointWriter.println(roundPoints); //print round's points on new line (append)
-			System.out.println(roundPoints); //test
-			Scanner myFileScanner = new Scanner(playerFile); //create scanner to read and add up all points
-			while (myFileScanner.hasNext()) { //add up all lines of point file to get total points
-				String getPoints = myFileScanner.next();
-				int points = Integer.valueOf(getPoints);
-				System.out.println(points); //test
-				totalPoints += points;
-			}
 			pointWriter.close(); //close to save file
+			File file = new File(playerFile); //create file case
+			Scanner myFileScanner = new Scanner(file); //create file scanenr to read from file
+			while (myFileScanner.hasNext()) { //add up all lines of point file to get total points
+				totalPoints += myFileScanner.nextInt();
+			}
 			myFileScanner.close();
 		} else { //calculate points if CPU deck passed in
-			String CPUFile = "H:\\ICS3\\ICS3U\\src\\FinalProject\\CPUPoints.txt";
+			String CPUFile = "C:\\Users\\dorothy\\Documents\\VSCode_for_Java\\ICS3U\\Crazy8s\\CPUPoints.txt"; // "H:\\ICS3\\ICS3U\\src\\FinalProject\\CPUPoints.txt"
 			PrintWriter pointWriter = new PrintWriter(new FileWriter (CPUFile, true)); //open file writer for appending to player's point file
 			pointWriter.println(roundPoints); //print round's points on new line (append)
-			Scanner myFileScanner = new Scanner(CPUFile); //create scanner to read and add up all points
-			while (myFileScanner.hasNext()) { //add up all lines of point file to get total points
-				String getPoints = myFileScanner.next();
-				int points = Integer.valueOf(getPoints);
-				totalPoints += points;
-			}
 			pointWriter.close(); //close to save file
+			File file = new File(CPUFile); //create file case
+			Scanner myFileScanner = new Scanner(file); //create file scanenr to read from file
+			while (myFileScanner.hasNext()) { //add up all lines of point file to get total points
+				totalPoints += myFileScanner.nextInt();
+			}
 			myFileScanner.close();
 		}
 		
 		return totalPoints; //return the total amount of points across all rounds to method invoked
 
+	}
+
+	public static void clearFile(String filePath) throws IOException{ //this method clears the point files when games are rerun
+		FileWriter fileWriter = new FileWriter(filePath, false); //false overwrites the file; not writing anything, so will clear.
+		fileWriter.close(); //save
 	}
 }
